@@ -1,5 +1,5 @@
 {
-  "name": "drmovi/composermicroservie",
+  "name": "drmovi/composermicroservice",
   "type": "composer-plugin",
   "require": {
     "composer-plugin-api": "^2.0"
