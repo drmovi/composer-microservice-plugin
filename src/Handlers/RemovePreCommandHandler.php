@@ -5,9 +5,10 @@ namespace Drmovi\ComposerMicroservice\Handlers;
 use Composer\Composer;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PreCommandRunEvent;
+use Drmovi\ComposerMicroservice\Enums\FilterMicroservicesPackages;
 use Drmovi\ComposerMicroservice\Traits\Microservice;
 
-class RequirePreCommandHandler
+class RemovePreCommandHandler
 {
 
     use Microservice;
@@ -22,7 +23,8 @@ class RequirePreCommandHandler
 
     public function handle(): void
     {
-        Context::setMicroservices($this->getMicroserviceChoices());
+        Context::setMicroservices($this->getMicroserviceChoices(FilterMicroservicesPackages::EXISTING_ONLY));
+        (new RemovePackagesFromMicroservices($this->composer, $this->io, $this->event))->handle();
     }
 
 }

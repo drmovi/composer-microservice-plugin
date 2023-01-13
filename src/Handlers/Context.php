@@ -6,18 +6,19 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class Context
 {
-    static int $microservice = 0;
+    static array $microservices = [];
     static ?string $command = null;
     static ?InputInterface $input = null;
+    static array $packages = [];
 
-    public static function setMicroservice(int $value): void
+    public static function setMicroservices(array $value): void
     {
-        self::$microservice = $value;
+        self::$microservices = $value;
     }
 
-    public static function getMicroservice(): int
+    public static function getMicroservices(): array
     {
-        return self::$microservice;
+        return self::$microservices;
     }
 
 
@@ -39,5 +40,14 @@ class Context
     public static function setCommand(string $value): void
     {
         self::$command = $value;
+    }
+    public static function getPackages(): array
+    {
+        return self::$packages;
+    }
+
+    public static function setPackages(array $packages): void
+    {
+        self::$packages = $packages;
     }
 }

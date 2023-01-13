@@ -4,14 +4,17 @@ namespace Drmovi\ComposerMicroservice;
 
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
+use Composer\Installer\InstallerEvent;
+use Composer\Installer\InstallerEvents;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PluginInterface;
 use Composer\Plugin\PreCommandRunEvent;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Drmovi\ComposerMicroservice\Handlers\AddPackagesToMicroservices;
 use Drmovi\ComposerMicroservice\Handlers\Context;
-use Drmovi\ComposerMicroservice\Handlers\RequirePostPostInstallOrUpdateHandler;
+use Drmovi\ComposerMicroservice\Handlers\RemovePreCommandHandler;
 use Drmovi\ComposerMicroservice\Handlers\RequirePreCommandHandler;
 
 class Plugin implements PluginInterface, EventSubscriberInterface
@@ -39,11 +42,12 @@ class Plugin implements PluginInterface, EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            InstallerEvents::PRE_OPERATIONS_EXEC => 'onPreOperationsExec',
             ScriptEvents::POST_UPDATE_CMD => [
-                ['onRequirePostInstallOrUpdate', 0]
+                ['onPostInstallOrUpdate', 0]
             ],
             ScriptEvents::POST_INSTALL_CMD => [
-                ['onRequirePostInstallOrUpdate', 0]
+                ['onPostInstallOrUpdate', 0]
             ],
             PluginEvents::PRE_COMMAND_RUN => 'onPreCommandRun',
         ];
@@ -55,13 +59,35 @@ class Plugin implements PluginInterface, EventSubscriberInterface
         Context::setCommand($event->getCommand());
         match ($event->getCommand()) {
             'require' => (new RequirePreCommandHandler($this->composer, $this->io, $event))->handle(),
+            'remove' => (new RemovePreCommandHandler($this->composer, $this->io, $event))->handle(),
             default => null,
         };
     }
 
-    public function onRequirePostInstallOrUpdate(Event $event): void
+    public function onPostInstallOrUpdate(Event $event): void
     {
-        $handler = new RequirePostPostInstallOrUpdateHandler($this->composer, $this->io, $event);
-        $handler->handle();
+        match (Context::getCommand()) {
+            'require' => (new AddPackagesToMicroservices($this->composer, $this->io, $event))->handle(),
+            default => null,
+        };
+
+    }
+
+    public function onPreOperationsExec(InstallerEvent $event): void
+    {
+        $inputPackages = Context::getInput()->getArgument('packages');
+        $packages = [];
+        foreach ($inputPackages as $inputPackage) {
+            $inputPackage = explode(':', $inputPackage);
+            $lockedPackage = $event->getComposer()->getLocker()->getLockedRepository()->findPackage($inputPackage[0], '*');
+            if ($lockedPackage) {
+                $packages[$inputPackage[0]] = $lockedPackage->getVersion();
+            }
+        }
+
+        foreach ($event->getTransaction()->getOperations() as $operation) {
+            $packages[$operation->getPackage()->getPrettyName()] = $operation->getPackage()->getVersion();
+        }
+        Context::setPackages($packages);
     }
 }
