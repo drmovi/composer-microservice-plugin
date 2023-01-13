@@ -30,6 +30,7 @@ class AddPackagesToMicroservices
         if (in_array('all', $microservices)) {
             $microservices = $this->getMicroservices();
         }
+        $microservices = array_diff($microservices, ['root', 'all']);
         $mainComposerFileContent = $this->getMainComposerFileContent(false);
         $microservicesComposerFileContent = [];
         foreach ($microservices as $microservice) {
