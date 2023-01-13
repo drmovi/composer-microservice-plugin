@@ -36,10 +36,11 @@ trait Microservice
         } else {
             $microservices[] = 'root';
         }
-        $microservices = [...$microservices, ...$this->getMicroservices($filter)];
+        $microservicesList = $this->getMicroservices($filter);
+        $microservices = [...$microservices, ...$microservicesList];
 
-        if ($this->event->getInput()->getOption('no-interaction')) {
-            return [0];
+        if (empty($microservicesList) || $this->event->getInput()->getOption('no-interaction')) {
+            return [];
         }
         $choices = $this->io->select(question: 'Please Select a microservice', choices: $microservices, default: 0, multiselect: true);
         foreach ($choices as $choice) {

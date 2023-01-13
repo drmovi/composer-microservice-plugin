@@ -27,7 +27,6 @@ class AddPackagesToMicroservices
         if (empty($microservices)) {
             return;
         }
-        $preservePackageInRoot = in_array('root', $microservices) || in_array('all', $microservices);
         if (in_array('all', $microservices)) {
             $microservices = $this->getMicroservices();
         }
@@ -44,22 +43,9 @@ class AddPackagesToMicroservices
                     json_decode($microserviceComposerFileContent, true)
                 );
             }
-            if (!$preservePackageInRoot) {
-                $decodedMainComposerFileContent = json_decode($mainComposerFileContent, true);
-                $requireDev = Context::getInput()->getOption('dev');
-                $key = $requireDev ? 'require-dev' : 'require';
-                foreach (Context::getPackages() as $package) {
-                    unset($decodedMainComposerFileContent[$key][$package]);
-                }
-                $this->setMainComposerFileContent($decodedMainComposerFileContent);
-            }
-
-
             $this->installComposer();
         } catch (\Exception $e) {
-            if (!$preservePackageInRoot) {
-                $this->setMainComposerFileContent($mainComposerFileContent);
-            }
+            $this->setMainComposerFileContent($mainComposerFileContent);
             foreach ($microservicesComposerFileContent as $microservice => $microserviceComposerFileContent) {
                 $this->setMicroserviceFileContent($microservice, $microserviceComposerFileContent);
             }

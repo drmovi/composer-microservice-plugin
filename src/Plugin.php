@@ -3,6 +3,7 @@
 namespace Drmovi\ComposerMicroservice;
 
 use Composer\Composer;
+use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\InstallerEvent;
 use Composer\Installer\InstallerEvents;
@@ -81,13 +82,24 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             $inputPackage = explode(':', $inputPackage);
             $lockedPackage = $event->getComposer()->getLocker()->getLockedRepository()->findPackage($inputPackage[0], '*');
             if ($lockedPackage) {
-                $packages[$inputPackage[0]] = $lockedPackage->getVersion();
+                $packages[$inputPackage[0]] = $this->getMajorMinorVersion($lockedPackage->getVersion());
             }
         }
-
         foreach ($event->getTransaction()->getOperations() as $operation) {
-            $packages[$operation->getPackage()->getPrettyName()] = $operation->getPackage()->getVersion();
+            if ($operation instanceof InstallOperation) {
+                $packages[$operation->getPackage()->getPrettyName()] = $this->getMajorMinorVersion($operation->getPackage()->getVersion());
+            }
         }
         Context::setPackages($packages);
+    }
+
+    private function getMajorMinorVersion(string $version): string
+    {
+        $version = explode('.', $version);
+        $result = '^'.$version[0];
+        if (isset($version[1])) {
+            $result .= '.' . $version[1];
+        }
+        return $result;
     }
 }
