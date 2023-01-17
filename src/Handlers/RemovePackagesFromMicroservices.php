@@ -3,11 +3,9 @@
 namespace Drmovi\ComposerMicroservice\Handlers;
 
 use Composer\Composer;
-use Composer\Console\Application;
 use Composer\IO\IOInterface;
 use Composer\Plugin\PreCommandRunEvent;
 use Drmovi\ComposerMicroservice\Traits\Microservice;
-use Symfony\Component\Console\Input\ArgvInput;
 
 class RemovePackagesFromMicroservices
 {
@@ -54,7 +52,7 @@ class RemovePackagesFromMicroservices
                 }
                 $this->setMainComposerFileContent($decodedMainComposerFileContent);
             }
-            $this->installComposer(true);
+            $this->installComposer();
         } catch (\Exception $e) {
             if (!$removePackagesInRoot) {
                 $this->setMainComposerFileContent($mainComposerFileContent);
