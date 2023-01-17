@@ -1,6 +1,7 @@
 {
   "name": "drmovi/composermicroservice",
   "type": "composer-plugin",
+  "license": "MIT",
   "require": {
     "php": ">=8.1",
     "composer-plugin-api": "^2.0",
