@@ -1,5 +1,5 @@
 {
-  "name": "drmovi/composermicroservice",
+  "name": "drmovi/composer-microservice-plugin",
   "type": "composer-plugin",
   "license": "MIT",
   "require": {
